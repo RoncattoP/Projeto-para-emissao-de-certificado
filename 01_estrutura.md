@@ -54,8 +54,8 @@ TECNICO (1) ----< MEDICAO >---- (1) EQUIPAMENTO
 
 ## 6. Por que evitar dados duplicados?
 
-Na AV1, o diagnóstico encontrou 50 anomalias nas planilhas. Várias delas vêm de informações
-repetidas em mais de um lugar. Separar os dados em 3 entidades resolve isso por estes motivos:
+Na AV1, a análise encontrou 50 anomalias nas planilhas. Várias delas vêm de informações
+repetidas em mais de um lugar. Assim, compreendeu-se que separar os dados nestas 3 entidades irá resolver os erros pelos seguintes motivos:
 
 1. **Consistência:** o dado do técnico ou do equipamento existe em um só lugar. Ao corrigi-lo,
    todas as medições passam a refletir a correção.
