@@ -46,7 +46,7 @@ Tipos de dados: **Texto** (TEXT), **Real** (REAL), **Inteiro** (INTEGER) e **Dat
 | `tolerancia_min` | REAL | NOT NULL | Limite inferior aceitável. |
 | `tolerancia_max` | REAL | NOT NULL | Limite superior aceitável. |
 | `valor_obtido` | REAL | NOT NULL | Leitura real coletada no ensaio. |
-| `status_resultado` | TEXT | NOT NULL, CHECK ('APROVADO', 'REPROVADO') | Parecer: aprovado se o valor obtido estiver entre as tolerâncias. |
+| `status_resultado` | TEXT | NOT NULL, CHECK (status_resultado IN ('APROVADO', 'REPROVADO')) | Resultado informado para a medição, limitado aos valores APROVADO ou REPROVADO. A classificação deve considerar os limites de tolerância estabelecidos. |
 | `data_medicao` | DATETIME | DEFAULT CURRENT_TIMESTAMP | Data e hora automática do registro da medição. |
 
 ---
@@ -59,9 +59,8 @@ Tipos de dados: **Texto** (TEXT), **Real** (REAL), **Inteiro** (INTEGER) e **Dat
 
 ## 3. Observações
 
-- O SQLite não possui tipo de data próprio. O campo `data_medicao` é guardado como texto no formato `AAAA-MM-DD HH:MM:SS`.
-- Valores ausentes nas planilhas de origem (células vazias, `---`, `?`) são tratados como `NULL`
-  na etapa de ETL descrita na AV1, e nunca convertidos para zero.
+- O SQLite não possui um tipo exclusivo de armazenamento para datas e horas. Neste projeto, o campo `data_medicao` utiliza `DATETIME DEFAULT CURRENT_TIMESTAMP`, registrando automaticamente a data e a hora quando o valor não é informado.
+- Durante o tratamento dos dados de origem, valores ausentes são identificados como NULL, sem conversão indevida para zero. Antes da inserção no banco, os campos obrigatórios devem ser validados e preenchidos conforme as regras de negócio.
 """
 
 nome_arquivo = "02_dicionario.md"

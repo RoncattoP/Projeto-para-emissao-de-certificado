@@ -1,1 +1,9 @@
-/schulz.db
+# Banco de dados SQLite gerado pelo Python
+/schulz_calibracao.db
+
+# Arquivos temporários do Visual Studio
+.vs/
+
+# Arquivos temporários do Python
+__pycache__/
+*.pyc
