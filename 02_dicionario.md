@@ -1,54 +1,58 @@
-# Dicionário de Dados do Sistema
+# 02_dicionario.md — Dicionário de Dados do Sistema
 
-**Projeto Aplicado I — Grupo 25 — Empresa parceira: Schulz S.A.**
+**Unidade Curricular:** Projeto Aplicado I
+**Empresa Parceira:** Schulz S.A.
+**Tema 02:** Modelagem e Implementação de Banco de Dados (SQLite)
+**Grupo 25:** Cristiane Nicolei | Matheus Martins | Priscilla Roncatto
 
-Os campos foram mapeados a partir do levantamento da AV1 (Dispositivo de controle,
-Registro MMC e Planilha MMC). Tipos usados: **Texto**, **Real** e **Inteiro**.
+---
 
-Conforme a AV1, identificadores (matrícula, códigos de equipamento, número de série)
-são tratados como **Texto**, para preservar a representação original (zeros à esquerda, letras).
+## 1. Mapeamento das Tabelas e Campos
 
-## Tabela `tecnico`
+Tipos de dados: **Texto** (TEXT), **Real** (REAL), **Inteiro** (INTEGER) e **Data/Hora** (DATETIME).
 
-| Campo | Tipo | Chave | Obrigatório | Descrição |
-|---|---|---|---|---|
-| matricula | Texto | PK | Sim | Matrícula do técnico/solicitante |
-| nome | Texto | | Sim | Nome completo |
-| setor | Texto | | Não | Setor do técnico ou solicitante |
+### 1.1. Tabela: `tecnico` (Técnicos / Solicitantes)
+| Nome do Campo | Tipo (SQLite) | Restrições / Chaves | Descrição / Regra de Negócio |
+| :--- | :--- | :--- | :--- |
+| `id_tecnico` | INTEGER | PRIMARY KEY AUTOINCREMENT | Identificador único do técnico. |
+| `nome_tecnico` | TEXT | NOT NULL | Nome completo do profissional. |
+| `matricula` | TEXT | NOT NULL, UNIQUE | Matrícula do colaborador. Texto, para preservar zeros à esquerda. |
+| `email` | TEXT | NOT NULL | E-mail corporativo do colaborador. |
+| `setor` | TEXT | NOT NULL | Departamento de atuação (Ex: Metrologia). |
 
-## Tabela `equipamento`
+### 1.2. Tabela: `equipamento` (Instrumentos e Máquinas)
+| Nome do Campo | Tipo (SQLite) | Restrições / Chaves | Descrição / Regra de Negócio |
+| :--- | :--- | :--- | :--- |
+| `id_equipamento` | INTEGER | PRIMARY KEY AUTOINCREMENT | Identificador único do equipamento. |
+| `codigo_tag` | TEXT | NOT NULL, UNIQUE | Código/TAG gravado no instrumento. Texto, para preservar o formato original. |
+| `nome_equipamento` | TEXT | NOT NULL | Descrição do equipamento (Ex: Paquímetro). |
+| `fabricante` | TEXT | NOT NULL | Fabricante do instrumento. |
+| `modelo` | TEXT | NOT NULL | Modelo do instrumento. |
 
-| Campo | Tipo | Chave | Obrigatório | Descrição |
-|---|---|---|---|---|
-| codigo | Texto | PK | Sim | Código/TAG do instrumento |
-| fabricante | Texto | | Não | Fabricante do instrumento |
-| modelo | Texto | | Não | Modelo do instrumento |
-| numero_serie | Texto | | Não | Número de série |
-| unidade | Texto | | Não | Unidade de medida (ex.: mm) |
-| data_calibracao | Texto | | Não | Data da calibração (AAAA-MM-DD) |
-| proxima_calibracao | Texto | | Não | Data da próxima calibração (AAAA-MM-DD) |
+### 1.3. Tabela: `medicao` (Registro das Calibrações / Ensaios)
+| Nome do Campo | Tipo (SQLite) | Restrições / Chaves | Descrição / Regra de Negócio |
+| :--- | :--- | :--- | :--- |
+| `id_medicao` | INTEGER | PRIMARY KEY AUTOINCREMENT | Identificador único do ensaio. |
+| `id_equipamento` | INTEGER | NOT NULL, FOREIGN KEY (equipamento) | Vínculo com o equipamento avaliado. |
+| `id_tecnico` | INTEGER | NOT NULL, FOREIGN KEY (tecnico) | Vínculo com o técnico responsável. |
+| `parametro_medido` | TEXT | NOT NULL | Característica aferida (Ex: Comprimento, Pressão). |
+| `valor_nominal` | REAL | NOT NULL | Valor de referência esperado. |
+| `tolerancia_min` | REAL | NOT NULL | Limite inferior aceitável. |
+| `tolerancia_max` | REAL | NOT NULL | Limite superior aceitável. |
+| `valor_obtido` | REAL | NOT NULL | Leitura real coletada no ensaio. |
+| `status_resultado` | TEXT | NOT NULL, CHECK ('APROVADO', 'REPROVADO') | Parecer: aprovado se o valor obtido estiver entre as tolerâncias. |
+| `data_medicao` | DATETIME | DEFAULT CURRENT_TIMESTAMP | Data e hora automática do registro da medição. |
 
-## Tabela `medicao`
+---
 
-| Campo | Tipo | Chave | Obrigatório | Descrição |
-|---|---|---|---|---|
-| id | Inteiro | PK | Sim | Identificador da medição (automático) |
-| codigo_equipamento | Texto | FK → equipamento.codigo | Sim | Equipamento medido |
-| matricula_tecnico | Texto | FK → tecnico.matricula | Sim | Técnico que executou |
-| parametro | Texto | | Sim | Característica medida |
-| valor_nominal | Real | | Sim | Valor de referência |
-| tolerancia_sup | Real | | Sim | Limite superior de tolerância |
-| tolerancia_inf | Real | | Sim | Limite inferior de tolerância |
-| medida_1 | Real | | Não | Primeira medição |
-| medida_2 | Real | | Não | Segunda medição |
-| valor_obtido | Real | | Não | Valor obtido (média das medições) |
-| status | Texto | | Não | APROVADO ou REPROVADO |
+## 2. Relacionamentos
 
-## Resumo
+- `medicao.id_equipamento` referencia `equipamento.id_equipamento` (um equipamento tem várias medições).
+- `medicao.id_tecnico` referencia `tecnico.id_tecnico` (um técnico realiza várias medições).
+- `ON DELETE RESTRICT`: impede apagar um técnico ou equipamento que já tenha medições registradas, preservando o histórico dos certificados.
 
-- **Total de campos mapeados:** 21 (mínimo exigido: 12).
-- **Tabelas:** 3.
-- **Datas:** o SQLite não possui tipo de data próprio, então são guardadas como texto
-  no formato AAAA-MM-DD.
-- **Valores ausentes:** conforme o plano ETL da AV1, células vazias ou marcadores
-  (`---`, `?`) são convertidos para `NULL`, nunca para zero.
+## 3. Observações
+
+- O SQLite não possui tipo de data próprio. O campo `data_medicao` é guardado como texto no formato `AAAA-MM-DD HH:MM:SS`.
+- Valores ausentes nas planilhas de origem (células vazias, `---`, `?`) são tratados como `NULL`
+  na etapa de ETL descrita na AV1, e nunca convertidos para zero.
