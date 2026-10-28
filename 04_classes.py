@@ -119,7 +119,28 @@ class Medicao :
         except sqlite3.Error as erro:
             print(f"Erro ao salvar med: {erro}")
         finally:
-            conexao.close()   
+            conexao.close()
+
+    @staticmethod
+    def relatorio(banco):
+        conexao = banco.conectar()
+        linhas = []
+        try:
+            cursor = conexao.cursor()
+            cursor.execute(
+                """SELECT m.id_medicao, e.codigo_tag, e.nome_equipamento, t.nome_tecnico,
+                        m.parametro_medido, m.valor_nominal, m.tolerancia_min,
+                        m.tolerancia_max, m.valor_obtido, m.status_resultado, m.data_medicao
+                FROM medicao m
+                JOIN equipamento e ON m.id_equipamento = e.id_equipamento
+                JOIN tecnico t     ON m.id_tecnico = t.id_tecnico"""
+            )
+            linhas = cursor.fetchall()
+        except sqlite3.Error as erro:
+            print(f"Erro ao gerar relatório: {erro}")
+        finally:
+            conexao.close()
+        return linhas
 
     def validar_calibracao(self):
         if self.tolerancia_min <= self.valor_obtido <= self.tolerancia_max:
@@ -154,3 +175,6 @@ if __name__ == "__main__":
         tec.atualizar(banco)
     for tec in Tecnico.listar(banco):
         print(tec.ID, tec.nome, tec.setor)
+
+    for linha in Medicao.relatorio(banco):
+        print(linha)
