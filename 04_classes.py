@@ -52,6 +52,21 @@ class Tecnico :
             conexao.close()
         return tecnicos
 
+    def atualizar(self, banco):
+        conexao = banco.conectar()
+        try:
+            cursor = conexao.cursor()
+            cursor.execute(
+                "UPDATE tecnico SET nome_tecnico = ?, email = ?, setor = ? "
+                "WHERE id_tecnico = ?",
+                (self.nome, self.email, self.setor, self.ID),
+            )
+            conexao.commit()
+        except sqlite3.Error as erro:
+            print(f"Erro ao atualizar técnico: {erro}")
+        finally:
+            conexao.close()
+
 class Equipamento :
     def __init__(self,Id_equipamento, codigo_tag, nome_equipamento, fabricante, modelo):
         self.Id_equipamento = Id_equipamento
@@ -133,3 +148,9 @@ if __name__ == "__main__":
 
     for tec in Tecnico.listar(banco):
         print(tec.ID, tec.nome, tec.matricula)
+
+    for tec in Tecnico.listar(banco):
+        tec.setor = "Qualidade"
+        tec.atualizar(banco)
+    for tec in Tecnico.listar(banco):
+        print(tec.ID, tec.nome, tec.setor)
