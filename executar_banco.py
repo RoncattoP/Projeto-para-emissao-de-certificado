@@ -4,9 +4,13 @@
 # GRUPO 25: Cristiane Nicolei | Matheus Martins | Priscilla Roncatto
 # ==============================================================================
 import sqlite3
+from pathlib import Path
 
-NOME_BANCO = "schulz_calibracao.db"
-ARQUIVO_SQL = "03_banco.sql"
+# Pasta onde este arquivo está. Assim o script funciona de qualquer pasta de execução.
+PASTA = Path(__file__).resolve().parent
+
+NOME_BANCO = str(PASTA / "schulz_calibracao.db")
+ARQUIVO_SQL = PASTA / "03_banco.sql"
 
 conexao = None
 try:
@@ -27,7 +31,7 @@ try:
     tabelas = [linha[0] for linha in cursor.fetchall()]
 
     print("=" * 60)
-    print(f"SUCESSO: Banco de dados '{NOME_BANCO}' gerado com sucesso!")
+    print(f"SUCESSO: Banco de dados '{Path(NOME_BANCO).name}' gerado com sucesso!")
     print(f"Tabelas criadas: {', '.join(tabelas)}")
     print("=" * 60)
 except Exception as e:

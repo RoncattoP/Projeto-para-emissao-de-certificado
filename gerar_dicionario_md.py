@@ -3,6 +3,7 @@
 # SCRIPT DE GERAÇÃO DO DICIONÁRIO DE DADOS (02_dicionario.md)
 # GRUPO 25: Cristiane Nicolei | Matheus Martins | Priscilla Roncatto
 # ==============================================================================
+from pathlib import Path
 
 conteudo_dicionario = """# 02_dicionario.md — Dicionário de Dados do Sistema
 
@@ -64,9 +65,11 @@ Tipos de dados: **Texto** (TEXT), **Real** (REAL), **Inteiro** (INTEGER) e **Dat
 """
 
 nome_arquivo = "02_dicionario.md"
+# Grava na mesma pasta deste script, de qualquer pasta de execução.
+caminho_arquivo = Path(__file__).resolve().parent / nome_arquivo
 
 try:
-    with open(nome_arquivo, "w", encoding="utf-8") as arquivo:
+    with open(caminho_arquivo, "w", encoding="utf-8") as arquivo:
         arquivo.write(conteudo_dicionario)
 
     total_campos = sum(

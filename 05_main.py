@@ -6,6 +6,12 @@
 import importlib
 import os
 import sqlite3
+import sys
+from pathlib import Path
+
+# Pasta onde este arquivo está. Assim o script funciona de qualquer pasta de execução.
+PASTA = Path(__file__).resolve().parent
+sys.path.insert(0, str(PASTA))
 
 # O módulo começa com número (04_classes), então usamos importlib.
 classes = importlib.import_module("04_classes")
@@ -14,7 +20,7 @@ Tecnico = classes.Tecnico
 Equipamento = classes.Equipamento
 Medicao = classes.Medicao
 
-NOME_BANCO = "demo_calibracao.db"
+NOME_BANCO = str(PASTA / "demo_calibracao.db")
 
 # ------------------------------------------------------------------------------
 # 1. PREPARAÇÃO: recria o banco do zero a cada execução (demonstração repetível)
@@ -23,7 +29,7 @@ if os.path.exists(NOME_BANCO):
     os.remove(NOME_BANCO)
 
 conexao = sqlite3.connect(NOME_BANCO)
-with open("03_banco.sql", "r", encoding="utf-8") as arquivo:
+with open(PASTA / "03_banco.sql", "r", encoding="utf-8") as arquivo:
     conexao.executescript(arquivo.read())
 conexao.close()
 
@@ -57,27 +63,48 @@ m1 = Medicao(None, e1.Id_equipamento, t1.ID, "Comprimento", 10, 9.9, 10.1, 10.02
 m1.salvar(banco)
 print(f"    Medição {m1.Id_medicao}: valor 10.02 -> {m1.status_resultado}")
 
-# Valor fora dos limites -> REPROVADO
+# Valor acima do limite -> REPROVADO (será corrigido no passo [4])
 m2 = Medicao(None, e1.Id_equipamento, t2.ID, "Comprimento", 10, 9.9, 10.1, 10.5, None, None)
 m2.salvar(banco)
 print(f"    Medição {m2.Id_medicao}: valor 10.5  -> {m2.status_resultado}")
 
+# Valor abaixo do limite -> REPROVADO
+m3 = Medicao(None, e1.Id_equipamento, t1.ID, "Comprimento", 10, 9.9, 10.1, 9.5, None, None)
+m3.salvar(banco)
+print(f"    Medição {m3.Id_medicao}: valor 9.5   -> {m3.status_resultado}")
+
 # ------------------------------------------------------------------------------
-# 3. SELECT: lista os técnicos cadastrados
+# 3. SELECT: lista os técnicos e os equipamentos cadastrados
 # ------------------------------------------------------------------------------
 print("\n[3] Técnicos cadastrados (SELECT):")
 for tec in Tecnico.listar(banco):
     print(f"    ID {tec.ID} | {tec.nome} | matrícula {tec.matricula} | {tec.setor}")
 
+print("\n    Equipamentos cadastrados (SELECT):")
+for equip in Equipamento.listar(banco):
+    print(f"    ID {equip.Id_equipamento} | {equip.codigo_tag} | {equip.nome} | {equip.fabricante}")
+
 # ------------------------------------------------------------------------------
-# 4. UPDATE: altera o setor de um técnico e lê de novo para confirmar
+# 4. UPDATE: altera um técnico, um equipamento e uma medição e lê de novo
 # ------------------------------------------------------------------------------
-print("\n[4] Atualizando o setor do técnico Jan (UPDATE):")
+print("\n[4] Atualizando registros (UPDATE):")
+
 t2.setor = "Qualidade"
 t2.atualizar(banco)
 for tec in Tecnico.listar(banco):
     if tec.ID == t2.ID:
-        print(f"    {tec.nome} agora está no setor: {tec.setor}")
+        print(f"    Técnico {tec.nome}: o setor agora é {tec.setor}")
+
+e1.nome = "Paquímetro digital"
+e1.atualizar(banco)
+for equip in Equipamento.listar(banco):
+    if equip.Id_equipamento == e1.Id_equipamento:
+        print(f"    Equipamento {equip.codigo_tag}: o nome agora é {equip.nome}")
+
+# A medição foi refeita: o status é recalculado antes de gravar.
+m2.valor_obtido = 10.05
+m2.atualizar(banco)
+print(f"    Medição {m2.Id_medicao}: valor corrigido para 10.05 -> {m2.status_resultado}")
 
 # ------------------------------------------------------------------------------
 # 5. JOIN: relatório de calibração
